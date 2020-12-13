@@ -1,4 +1,4 @@
-f = open('day4-final.txt','r')
+f = open('data/day4-final.txt', 'r')
 #f = open('day4-sample.txt','r')
 
 all = []

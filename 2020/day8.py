@@ -1,7 +1,7 @@
 import re
 
 #f = open('day8-sample.txt', 'r')
-f = open('day8-final.txt', 'r')
+f = open('data/day8-final.txt', 'r')
 
 contents = f.readlines()
 

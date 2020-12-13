@@ -1,5 +1,5 @@
 # f = open('day11-sample.txt', 'r')
-f = open('day11-final.txt', 'r')
+f = open('data/day11-final.txt', 'r')
 
 content = [l.strip() for l in f]
 

@@ -1,6 +1,6 @@
 
 # f = open('day10-sample.txt', 'r')
-f = open('day10-final.txt', 'r')
+f = open('data/day10-final.txt', 'r')
 
 jolts = sorted([int(x) for x in f])
 

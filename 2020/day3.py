@@ -1,7 +1,7 @@
 import re
 
 #f = open('day3-sample.txt', 'r')
-f = open('day3-final.txt', 'r')
+f = open('data/day3-final.txt', 'r')
 content = [line.strip() for line in f.readlines()]
 
 height = content.__len__()

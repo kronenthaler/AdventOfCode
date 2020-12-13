@@ -1,5 +1,5 @@
 
-f = open('day1-sample.txt', 'r')
+f = open('data/day1-sample.txt', 'r')
 # f = open('day1-final.txt', 'r')
 
 content = f.readlines()

@@ -1,6 +1,6 @@
 import re
 
-f = open('day2-final.txt', 'r')
+f = open('data/day2-final.txt', 'r')
 total = 0
 positionalTotal = 0
 while True:

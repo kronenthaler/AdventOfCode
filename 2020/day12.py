@@ -1,5 +1,5 @@
 # f = open('day12-sample.txt', 'r')
-f = open('day12-final.txt', 'r')
+f = open('data/day12-final.txt', 'r')
 
 content = [(l[0], int(l[1:])) for l in f]
 dir = [(0, 1), (1, 0), (0, -1), (-1, 0)] # nesw

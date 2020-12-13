@@ -1,7 +1,7 @@
 import re
 
 #f = open('day4-sample.txt', 'r')
-f = open('day4-final.txt', 'r')
+f = open('data/day4-final.txt', 'r')
 
 def bin(seq):
     lo = 0

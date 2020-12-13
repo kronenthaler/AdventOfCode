@@ -1,7 +1,7 @@
 import re
 
 #f = open('day9-sample.txt', 'r')
-f = open('day9-final.txt', 'r')
+f = open('data/day9-final.txt', 'r')
 
 content = f.readlines()
 digits = list([int(x) for x in content])

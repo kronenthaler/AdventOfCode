@@ -1,7 +1,7 @@
 import re
 
 #f = open('day7-sample.txt', 'r')
-f = open('day7-final.txt', 'r')
+f = open('data/day7-final.txt', 'r')
 
 invG = {}
 G = {}

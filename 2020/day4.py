@@ -1,6 +1,6 @@
 import re
 
-f = open("day3-final.txt", 'r')
+f = open("data/day3-final.txt", 'r')
 # f = open("day3-sample.txt", 'r')
 content = f.readlines()
 
