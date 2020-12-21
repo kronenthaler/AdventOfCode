@@ -62,32 +62,10 @@ def rotate(tiles):
 
     return tiles
 
-def neighbours(i,j,n):
-    neighbours = (True, True, True, True)  # default
-    if i == 0 and j == 0:
-        neighbours = (False, False, True, True)
-    elif i == 0 and j == n - 1:
-        neighbours = (False, True, True, False)
-    elif i == n - 1 and j == 0:
-        neighbours = (True, False, False, True)
-    elif i == n - 1 and j == n - 1:
-        neighbours = (True, True, False, False)
-    elif i == 0:
-        neighbours = (False, True, True, True)
-    elif i == n - 1:
-        neighbours = (True, True, False, True)
-    elif j == 0:
-        neighbours = (True, False, True, True)
-    elif j == n - 1:
-        neighbours = (True, True, True, False)
-    return neighbours
-
-
 def check(i, j, n, table, tiles, o):
-    next = neighbours(i, j, n)
-    inc = ((-1, 0), (0, -1), (1, 0), (0, 1))
+    inc = ((-1, 0), (0, -1))
     for d in range(0, 2):
-        if next[d] and table[i+inc[d][0]][j+inc[d][1]][1][(d+2) % 4] != o[d]:
+        if (i+inc[d][0] >= 0 and j+inc[d][1] >= 0) and table[i+inc[d][0]][j+inc[d][1]][1][(d+2) % 4] != o[d]:
             return False
     return True
 
@@ -101,25 +79,19 @@ def bt(G, tiles, i, j, n, visited, table):
         maxPos = i * n + j
         print(i, j)
 
-    for g, e in sorted(G.items(), key=lambda t: t[1].__len__()):
+    for g, t in tiles.items():
         if g in visited: continue
-        if i - 1 >= 0 and table[i - 1][j][0] not in e: continue
-        if j - 1 >= 0 and table[i][j - 1][0] not in e: continue
+        # if i - 1 >= 0 and table[i - 1][j][0] not in e: continue
+        # if j - 1 >= 0 and table[i][j - 1][0] not in e: continue
 
         for o in tiles[g]:
             # fits on the table[i][j] (id, orientation)
             # print(table)
             if check(i, j, n, table, tiles, o):
                 table[i][j] = (g, o)
-                visited.add(g)
-                # print(i, j, g)
-                result = bt(G, tiles, i + ((j+1) // n), (j+1) % n, n, visited, table)
-
-                if result is not None:
+                if (result := bt(G, tiles, i + ((j+1) // n), (j+1) % n, n, visited | set([g]), table)) is not None:
                     return result
-
                 table[i][j] = ('', None)
-                visited.remove(g)
 
     # no solution
     return None
@@ -127,16 +99,16 @@ def bt(G, tiles, i, j, n, visited, table):
 def part1(tiles):
     contacts = {}
 
-    for id, t in tiles.items():
-        for id1, t1 in tiles.items():
-            if t == t1: continue
-            for i in range(0, t.__len__()):
-                o1 = t[i]
-                for j in range(0, t1.__len__()):
-                    o2 = t1[j]
-                    if o1[0] == o2[2] or o1[2] == o2[0] or o1[1] == o2[3] or o1[3] == o1[1]:
-                        contacts[id] = contacts.get(id, set()) | set([id1])
-                        contacts[id1] = contacts.get(id1, set()) | set([id])
+    # for id, t in tiles.items():
+    #     for id1, t1 in tiles.items():
+    #         if t == t1: continue
+    #         for i in range(0, t.__len__()):
+    #             o1 = t[i]
+    #             for j in range(0, t1.__len__()):
+    #                 o2 = t1[j]
+    #                 if o1[0] == o2[2] or o1[2] == o2[0] or o1[1] == o2[3] or o1[3] == o1[1]:
+    #                     contacts[id] = contacts.get(id, set()) | set([id1])
+    #                     contacts[id1] = contacts.get(id1, set()) | set([id])
 
     n = int(math.sqrt(tiles.__len__()))
     table = []
