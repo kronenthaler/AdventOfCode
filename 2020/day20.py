@@ -1,126 +1,100 @@
-import re
 import math
-import sys
+import re
 
-# f = open('data/day20-sample.txt', 'r')
-f = open('data/day20-final.txt', 'r')
+# data = open('data/day20-sample.txt', 'r').read()
+data = open('data/day20-final.txt', 'r').read()
 
-tiles = {}
-while True:
-    l = f.readline().strip()
-    id = re.match('Tile (.*):', l)
-    if id is None or id == '':
-        break
-    id = id.group(1)
-    left = ''
-    right = ''
-    top = ''
-    bottom = ''
-    for i in range(0, 10):
-        l = f.readline().strip()
-        if i == 0:
-            top = int(l.replace('.', '0').replace('#', '1'), 2)
-        elif i == 9:
-            bottom = int(l.replace('.', '0').replace('#', '1'), 2)
-        left += l[0]
-        right += l[9]
-
-    f.readline()  #\n
-    tiles[id] = [(top,
-                  int(right.replace('.', '0').replace('#', '1'), 2),
-                  bottom,
-                  int(left.replace('.', '0').replace('#', '1'), 2))]
+P = {int(p[5:9]): p[11:] for p in data.split('\n\n')}
+edge = lambda p, i: [p[:10], p[9::11], p[-10:], p[0::11]][i]
 
 
-def rotate(tiles):
-    for k, tile in tiles.items():
-        (t, l, b, r) = tile[0]
-        tf = int("{0:b}".format(t)[::-1], 2)
-        bf = int("{0:b}".format(b)[::-1], 2)
-        lf = int("{0:b}".format(l)[::-1], 2)
-        rf = int("{0:b}".format(r)[::-1], 2)
+def transform(p):
+    for _ in range(4):
+        yield p
+        yield '\n'.join(l[::-1] for l in p.split('\n'))  # flip
+        p = '\n'.join(''.join(l[::-1]) for l in zip(*p.split('\n')))  # rotate
 
-        # normal
-        tile.append((l, b, r, t))
-        tile.append((b, r, t, l))
-        tile.append((r, t, l, b))
-        # v-flip
-        tile.append((tf, l, bf, r))
-        tile.append((l, bf, r, tf))
-        tile.append((bf, r, tf, l))
-        tile.append((r, tf, l, bf))
-        # h-flip
-        tile.append((t, lf, b, rf))
-        tile.append((lf, b, rf, t))
-        tile.append((b, rf, t, lf))
-        tile.append((rf, t, lf, b))
-        # double flip
-        tile.append((tf, lf, bf, rf))
-        tile.append((lf, bf, rf, tf))
-        tile.append((bf, rf, tf, lf))
-        tile.append((rf, tf, lf, bf))
 
-    return tiles
+# greedy calculation
+def part1(board, orientations):
+    corners = set()
+    for k, v in board.items():
+        edges = set()
+        for _, o in board.items():
+            if o == v: continue
+            for ot in orientations(o):
+                for i in range(4):
+                    e1 = edge(ot, (i + 2) % 4)
+                    e2 = edge(v, i)
+                    if e1 == e2:
+                        edges.add(ot)
+        if len(edges) == 2:
+            corners.add(k)
+    return math.prod(list(corners))
 
-def check(i, j, n, table, tiles, o):
-    inc = ((-1, 0), (0, -1))
-    for d in range(0, 2):
-        if (i+inc[d][0] >= 0 and j+inc[d][1] >= 0) and table[i+inc[d][0]][j+inc[d][1]][1][(d+2) % 4] != o[d]:
-            return False
-    return True
+def bt(board, index, n, order, table):
+    if len(order) == len(board):
+        return order
 
-maxPos = 0
-def bt(G, tiles, i, j, n, visited, table):
-    global maxPos
-    if visited.__len__() == n*n:
-        return table
+    for id, t in board.items():
+        if id in order: continue
+        i = index // n
+        j = index % n
 
-    if maxPos < i * n + j:
-        maxPos = i * n + j
-        print(i, j)
-
-    for g, t in tiles.items():
-        if g in visited: continue
-        # if i - 1 >= 0 and table[i - 1][j][0] not in e: continue
-        # if j - 1 >= 0 and table[i][j - 1][0] not in e: continue
-
-        for o in tiles[g]:
-            # fits on the table[i][j] (id, orientation)
-            # print(table)
-            if check(i, j, n, table, tiles, o):
-                table[i][j] = (g, o)
-                if (result := bt(G, tiles, i + ((j+1) // n), (j+1) % n, n, visited | set([g]), table)) is not None:
+        for o in transform(t):
+            first = i == 0 or edge(o, 0) == edge(table[i-1][j], 2)
+            second = j == 0 or edge(o, 3) == edge(table[i][j-1], 1)
+            if first and second:
+                table[i][j] = o
+                if result := bt(board, index+1, n, order + [id], table):
                     return result
-                table[i][j] = ('', None)
-
-    # no solution
+                table[i][j] = ''
     return None
 
-def part1(tiles):
-    contacts = {}
+def part2(board, orientations):
+    # need to bt to place all tiles in the right position
+    n = int(len(board) ** 0.5)
+    m = 10
+    table = [['' for _ in range(n)] for _ in range(n)]
+    order = bt(board, 0, n, [], table)
 
-    # for id, t in tiles.items():
-    #     for id1, t1 in tiles.items():
-    #         if t == t1: continue
-    #         for i in range(0, t.__len__()):
-    #             o1 = t[i]
-    #             for j in range(0, t1.__len__()):
-    #                 o2 = t1[j]
-    #                 if o1[0] == o2[2] or o1[2] == o2[0] or o1[1] == o2[3] or o1[3] == o1[1]:
-    #                     contacts[id] = contacts.get(id, set()) | set([id1])
-    #                     contacts[id1] = contacts.get(id1, set()) | set([id])
+    map = [''] * n * (m-2)
+    for i in range(n):
+        for j in range(n):
+            # convert the strings into matrix
+            t = [list(l) for l in table[i][j].split('\n')]
+            # remove edges
+            table[i][j] = list([l[1:m-1] for l in t[1:m-1]])
 
-    n = int(math.sqrt(tiles.__len__()))
-    table = []
-    for _ in range(0, n):
-        x = []
-        for _ in range(0, n):
-            x.append(('', None))
-        table.append(x)
-    table = bt(contacts, tiles, 0, 0, n, set(), table)
-    [print(x) for x in table]
-    return int(table[0][0][0]) * int(table[0][n-1][0]) * int(table[n-1][0][0]) * int(table[n-1][n-1][0])
+    for j in range(n):
+        t = 0
+        for i in range(n):
+            for k in range(len(table[i][j])):
+                joined = ''.join(table[i][j][k])
+                map[t] = map[t] + joined
+                t += 1
 
-print('part1:', part1(rotate(tiles)))
+    monster = (".{}(..................#.)", "(#....##....##....###)", ".{}(.#..#..#..#..#..#...)")
+    for t in transform('\n'.join(map)):
+        count = 0
+        lines = t.split('\n')
+        for i in range(len(lines)):
+            l = lines[i]
+
+            for match in re.finditer(monster[1], l):
+                index = match.start(1)
+                up = i - 1 >= 0 and re.match(monster[0].format("{" + str(index) + "}"), lines[i - 1]) is not None
+                down = i + 1 < len(lines) and re.match(monster[2].format("{" + str(index) + "}"), lines[i + 1]) is not None
+
+                if up and down:
+                    count += 1
+        if count != 0:
+            hashes = sum([1 for c in '\n'.join(map) if c == '#'])
+            return hashes - count*15
+    return order[0] * order[n-1] * order[(n-1) * n] * order[((n-1) * n) + (n-1)]
+
+
+print('part1:', part1(P, transform))
+print('part2:', part2(P, transform))
 
 
