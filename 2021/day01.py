@@ -1,8 +1,5 @@
-
-
 #f = open('data/day1-sample.txt', 'r')
 f = open('data/day1-final.txt', 'r')
-
 
 
 def part1(depths):
