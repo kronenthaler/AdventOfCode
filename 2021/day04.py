@@ -17,8 +17,8 @@ while f.readline():
 
 def print_b(board):
     for r in board[0]:
-        print r
-    print ""
+        print(r)
+    print("")
 
 
 def part1(seq, boards):
@@ -39,10 +39,8 @@ def part1(seq, boards):
 def part2(seq, boards):
     for s in seq:
         to_remove = set()
-        print s
         for j in range(0, len(boards)):
             r, c = boards[j]
-            print_b((r, c))
             for i in range(0, 5):
                 if s in r[i]:
                     r[i].remove(s)
