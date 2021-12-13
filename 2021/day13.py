@@ -28,7 +28,7 @@ def part2(ps, ins):
             board[y].append(' ')
 
     for x, y in points:
-        board[y][x] = '#'
+        board[y][x] = '░'
 
     line = "\n"
     for y in range(maxY):
