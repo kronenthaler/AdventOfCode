@@ -55,7 +55,7 @@ def part2(input, n):
     for t in range(n):
         total = part1(input, 1)
         if total == 100:
-            return t + 101
+            return t + 101 # first part takes 100 iterations
 
 
 input = [[int(x) for x in l.strip()] for l in f]
