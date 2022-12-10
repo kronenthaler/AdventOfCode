@@ -1,7 +1,7 @@
 import re
 
 f = open('data/day__DAY__-sample.txt', 'r')
-# f = open('data/day__DAY__-final.txt', 'r') # 13676 failed: too high
+# f = open('data/day__DAY__-final.txt', 'r')
 
 def part1(l):
     pass
