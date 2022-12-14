@@ -6,7 +6,6 @@ f = open('data/day14-final.txt', 'r')
 
 
 def fall(x, y, board):
-    # [print("".join(l[miny - 1:])) for l in board]
     for i in range(0, len(board)):
         if x+1 >= len(board):
             return True
@@ -19,7 +18,7 @@ def fall(x, y, board):
             (board[x+1][y+1] == 'o' or board[x+1][y+1] == '#') and \
             (board[x+1][y-1] == 'o' or board[x+1][y-1] == '#'):
             board[x][y] = 'o'
-            return False
+            return x == 0 and y == 500
 
         if board[x+1][y-1] != 'o' and board[x+1][y-1] != '#':
             y -= 1
@@ -33,18 +32,14 @@ def fall(x, y, board):
 
     return False
 
+
 def part1(board):
-    # simulate until sand flows out the bottom
     while True:
         if fall(0, 500, board):
             break
 
-    # count how many 'o' there are in the board
+    # [print("".join(l)) for l in board]
     return sum([1 for i in range(0, len(board)) for j in range(0, len(board[0])) if board[i][j] == 'o'])
-
-
-def part2(l):
-    pass
 
 
 lines = []
@@ -65,7 +60,7 @@ for l in f:
         path.append(point)
     walls.append(path)
 
-board = [['.'] * (maxy + 1) for i in range(0, maxx + 1)]
+board = [['.'] * ((2*maxy) + 1) for i in range(0, maxx + 1)]
 for path in walls:
     for p in range(0, len(path)-1):
         p1 = path[p]
@@ -85,4 +80,6 @@ for path in walls:
 
 
 print("part1: ", part1(deepcopy(board)))
-print("part2: ", part2(deepcopy(board)))
+board.append(['.']*len(board[0]))
+board.append(['#']*len(board[0]))
+print("part2: ", part1(deepcopy(board)))
