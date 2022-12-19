@@ -1,8 +1,8 @@
 import re
 from functools import cmp_to_key
 
-f = open('data/day18-sample.txt', 'r'); n=10
-# f = open('data/day18-final.txt', 'r'); n=25
+# f = open('data/day18-sample.txt', 'r'); n=10
+f = open('data/day18-final.txt', 'r'); n=25
 
 def sort_p(a, b):
     ax, ay, az = a
@@ -48,24 +48,29 @@ def part1(l):
     return len(cubes) - len(collisions), cubes, collisions
 
 
-# wrong answer, cannot detect difference between internal or external face.
+# flood from the outside
 def part2(l):
     open_faces, cubes, collisions = part1(l)
-    inside = set()
-    for vx, vy, vz in [(vx, vy, vz) for vx in range(0, n) for vy in range(0, n) for vz in range(0, n)]:
-        if (vx, vy, vz) in l:
-            continue
+
+    queue = [(-1,-1,-1)]
+    visited = set()
+    external = set()
+    while len(queue) != 0:
+        vx, vy, vz = queue.pop(0)
 
         for i in range(0, len(incs)):
-            x, y, z = incs[i]
-            for j in range(0, n):
-                f = str(make_face(vx+x, vy+y, vz+z, i))
-                if f in cubes and f not in collisions:
-                    inside.add(f)
-                    continue
+            x,y,z = incs[i]
 
-    print(len(inside), len(collisions), inside)
-    return open_faces - len(inside)
+            f = make_face(vx, vy, vz, i).__str__()
+            if f in cubes:
+                external.add(f)
+
+            new_voxel = vx+x, vy+y, vz+z
+            if new_voxel not in visited and new_voxel not in l and -1 <= vx < n and -1 <= vy < n and -1 <= vz < n:
+                visited.add(new_voxel)
+                queue.append(new_voxel)
+
+    return len(external)
 
 
 lines = [tuple(list(map(int, l.strip().split(',')))) for l in f]
