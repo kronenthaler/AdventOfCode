@@ -37,8 +37,8 @@ jumps = [None, [(2, 0), (4, 1), (6, 0), (9, 0)], [(7, 2), (4, 2), (1, 2), (9, 3)
 # 5-4: min(i) + rel_c(i), max(j)
 # 5-6: min(i) + rel_c(j), max(j)
 
-# 6-1:
-# 6-2:
+# 6-1: min(i), min(j) + rel_c(i)
+# 6-2: min(i), min(j) + rel_c(j)
 # 6-4: max(i), min(j) + rel_c(j)
 # 6-5: max(i), min(j) + rel_c(i)
 
