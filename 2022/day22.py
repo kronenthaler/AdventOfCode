@@ -3,46 +3,57 @@ import re
 # f = open('data/day22-sample.txt', 'r'); N = 4
 f = open('data/day22-final.txt', 'r'); N = 50
 
+R=0;D=1;L=2;U=3
 incs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # r, d, l, u (0 1 2 3)
 dir_s = ['>', 'v', '<', '^']
-jumps = [None, [(2, 0), (4, 1), (6, 0), (9, 0)], [(7, 2), (4, 2), (1, 2), (9, 3)],
-         None, [(2, 3), (7, 1), (6, 1), (1, 3)], None,
-         [(7, 0), (9, 1), (1, 0), (4, 0)], [(2, 2), (9, 2), (6, 2), (4, 3)], None,
-         [(7, 3), (2, 1), (1, 1), (6, 3)]
+jumps = [None, [(2, R), (4, D), (6, R), (9, R)], [(7, L), (4, L), (1, L), (9, U)],
+         None, [(2, U), (7, D), (6, D), (1, U)], None,
+         [(7, R), (9, D), (1, R), (4, R)], [(2, L), (9, L), (6, L), (4, U)], None,
+         [(7, U), (2, D), (1, D), (6, U)]
 ]
 
-# lambda i, j, rel_i, rel_j, min_i, min_j, max_i, max_j
-# 1-2: min(i) + rel_c(i), min(j)
-# 1-3: min(i), min(j) + rel_c(j)
-# 1-4: max(i) - rel_c(i), min(j)
-# 1-6: min(i), min(j) + rel_c(j)
-
-# 2-1: min(i) + rel_c(i), max(j)
-# 2-5: max(i) - rel_c(j), max(j)
-# 2-3: min(i) + rel_c(j), max(j)
-# 2-6: max(i), rel_c(j)
-
-# 3-2: max(i), min(j) + rel_c(i)
-# 3-1: max(i), min(j) + rel_c(j)
-# 3-5: min(i), min(j) + rel_c(j)
-# 3-4: min(i), min(j) + rel_c(i)
-
-# 4-1: max(i) - rel_c(i), min(j)
-# 4-3: min(i) + rel_c(j), min(j)
-# 4-5: min(i) + rel_c(i), min(j)
-# 4-6: min(i), min(j) + rel_c(j)
-
-# 5-2: max(i) - rel_c(j), max(j)
-# 5-3: max(i), min(j) + rel_c(j)
-# 5-4: min(i) + rel_c(i), max(j)
-# 5-6: min(i) + rel_c(j), max(j)
-
-# 6-1: min(i), min(j) + rel_c(i)
-# 6-2: min(i), min(j) + rel_c(j)
-# 6-4: max(i), min(j) + rel_c(j)
-# 6-5: max(i), min(j) + rel_c(i)
-
-
+wraps = [
+    None,
+    {
+        2: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i + rel_i, min_j), # ok
+        4: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i, min_j + rel_j), # ok
+        6: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i - rel_i, min_j), # ok
+        9: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i + rel_j, min_j), # ok
+    },  # 1-X
+    {
+        1: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i + rel_i, max_j), # ok
+        7: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i - rel_i, max_j), # ok
+        4: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i + rel_j, max_j), # ok
+        9: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i, min_j + rel_j), # ok
+    },  # 2-X
+    None,
+    {
+        2: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i, min_j + rel_i), # ok
+        1: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i, min_j + rel_j), # ok
+        7: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i, min_j + rel_j), # ok
+        6: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i, min_j + rel_i), # ok
+    },  # 3-X
+    None,
+    {
+        1: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i - rel_i, min_j), # ok
+        4: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i + rel_j, min_j), # ok
+        7: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i + rel_i, min_j), # ok
+        9: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i, min_j + rel_j), # ok
+    },  # 4-X
+    {
+        2: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i - rel_i, max_j), # ok
+        4: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i, min_j + rel_j), # ok
+        6: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i + rel_i, max_j), # ok
+        9: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i + rel_j, max_j), # ok
+    },  # 5-X
+    None,
+    {
+        1: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i, min_j + rel_i), # ok
+        2: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (min_i, min_j + rel_j), # ok
+        6: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i, min_j + rel_j), # ok
+        7: lambda rel_i, rel_j, min_i, min_j, max_i, max_j: (max_i, min_j + rel_i), # ok
+    },  # 6-X
+]
 
 def print_b(board, pos, dir):
     for i in range(len(board)):
@@ -72,9 +83,15 @@ def wrap1(i, j, dir):
 
 def wrap2(i, j, dir):
     face_i, face_j = i // N, j // N
-    new_face, new_dir = jumps[face_i * 3 + face_j][dir]
-    # calculate transpotion of coordinates for new pos
-    new_pos = i,j
+    current_face_index = face_i * 3 + face_j
+    new_face, new_dir = jumps[current_face_index][dir]
+    new_face_i, new_face_j = new_face // 3, new_face % 3
+    mi, mj = incs[new_dir]
+    min_i, min_j = new_face_i * N, new_face_j * N
+    max_i, max_j = min_i + N-1, min_j + N-1
+    rel_i, rel_j = i - (face_i * N), j - (face_j * N)
+    new_pos = wraps[current_face_index][new_face](rel_i, rel_j, min_i, min_j, max_i, max_j)
+
     if board[new_pos[0]][new_pos[1]] == '#':
         return None, None
     return new_pos, new_dir
@@ -85,20 +102,19 @@ def move(pos, dir, board, step, wrap):
         i, j = pos
         mi, mj = incs[dir]
         if (0 > i+mi or i+mi >= len(board)) or (0 > j+mj or j+mj >= len(board[i])) or board[i+mi][j+mj] == ' ':  # wrap around
-            mod = len(board[i]) if dir % 2 == 0 else len(board)
-            x, y = i, j
             new_pos, new_dir = wrap(i, j, dir)
-            dir = new_dir
 
             if not new_pos:
-                return x, y
-            pos = new_pos
+                return i, j
 
+            dir = new_dir
+            pos = new_pos
         else:
             if board[i+mi][j+mj] == '#':
                 return i, j
             pos = i+mi, j+mj
     return pos
+
 
 def part1(board, moves, wrap):
     pos = (0, 0)
@@ -116,8 +132,6 @@ def part1(board, moves, wrap):
 
     return ((pos[0]+1)*1000) + ((pos[1]+1)*4) + dir
 
-def part2(board, moves):
-    pass
 
 board = []
 max_l = 0
@@ -135,6 +149,6 @@ for i in range(len(board)):
     l = board[i]
     if max_l != len(l):
         board[i] = l.ljust(max_l)
-print(len(moves))
+
 print("part1: ", part1(board, moves, wrap1))
-print("part2: ", part2(board, moves))
+print("part2: ", part1(board, moves, wrap2))
