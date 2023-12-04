@@ -7,14 +7,8 @@ f = open('data/day04-final.txt', 'r')
 def part1(lines):
     total = 0
     for card, winning, ticket in lines:
-        current = 0
-        for x in winning:
-            if x in ticket:
-                if current == 0:
-                    current = 1
-                else:
-                    current *= 2
-        total += current
+        w = winners(card, winning, ticket)
+        total += 2**(w-1) if w > 0 else 0
     return total
 
 
@@ -24,6 +18,7 @@ def winners(card, winning, ticket):
         if x in ticket:
             current += 1
     return current
+
 
 def part2(lines):
     counts = {card: 1 for card,_,_ in lines}
@@ -47,5 +42,5 @@ def parse(lines):
         )
 
 
-# print("part1: ", part1(parse(lines)))
+print("part1: ", part1(parse(lines)))
 print("part2: ", part2([l for l in parse(lines)]))
