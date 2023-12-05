@@ -10,7 +10,7 @@ def part2(l):
     pass
 
 
-lines = [l for l in f]
+lines = [l.strip() for l in f]
 
 print("part1: ", part1(lines))
 print("part2: ", part2(lines))
