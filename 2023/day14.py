@@ -11,16 +11,6 @@ def print_map(map):
 
 
 def roll(map, direction):
-    di, dj = direction
-
-    rows = range(len(map))
-    if di > 0:
-        rows = range(len(map)-1, -1, -1)
-
-    columns = range(len(map[0]))
-    if dj > 0:
-        columns = range(len(map[0])-1, -1, -1)
-
     def process(i, j):
         if map[i][j] == '#' or map[i][j] == '.':
             return
@@ -30,28 +20,26 @@ def roll(map, direction):
             x = map[pi - di][pj - dj]
             map[pi - di][pj - dj] = '.'
             map[pi][pj] = x
-            pi += di
-            pj += dj
+            pi, pj = pi+di, pj+dj
+
+    di, dj = direction
+    rows = range(len(map) - 1, -1, -1) if di > 0 else range(len(map))
+    columns = range(len(map[0]) - 1, -1, -1) if dj > 0 else range(len(map[0]))
 
     # need to traverse right to left or bottom to top if di or dj is positive
     if di != 0:
         [process(i, j) for i in rows for j in columns]
     else:
         [process(i, j) for j in columns for i in rows]
+    return map
 
 
 def calc(new_map):
-    total = 0
-    for i, r in enumerate(new_map):
-        count = r.count('O')
-        total += count * (len(new_map) - i)
-    return total
+    return sum([r.count('O') * (len(new_map) - i) for i, r in enumerate(new_map)])
 
 
 def part1(map):
-    new_map = copy.deepcopy(map)
-    roll(new_map, (-1, 0))
-    return calc(new_map)
+    return calc(roll(copy.deepcopy(map), (-1, 0)))
 
 
 def part2(map):
@@ -62,8 +50,7 @@ def part2(map):
     key = "".join(["".join(r) for r in new_map])
     previous = {key: 0}
     for t in range(1_000_000_000):
-        for d in directions:
-            roll(new_map, d)
+        [roll(new_map, d) for d in directions]
 
         key = "".join(["".join(r) for r in new_map])
         if key in previous:
@@ -72,10 +59,9 @@ def part2(map):
             previous[key] = t
 
     start_loop = previous[key]
-    loop_size = t - start_loop
-    index = (1_000_000_000 - start_loop - 1) % loop_size
+    index = start_loop + ((1_000_000_000 - start_loop - 1) % (t - start_loop))
 
-    map_key = next(k for k, v in previous.items() if v == index + start_loop)
+    map_key = next(k for k, v in previous.items() if v == index)
 
     # split the key into a map for the final calculation
     chunk_size = len(map)
