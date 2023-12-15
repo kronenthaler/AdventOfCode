@@ -39,7 +39,7 @@ def part1(lines):
     return total
 
 def part2(l):
-    # combinatorics?
+    # combinatorics? -> DP / BT + memo
     pass
 
 

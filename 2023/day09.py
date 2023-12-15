@@ -3,22 +3,18 @@ import re
 # f = open('data/day09-sample.txt', 'r')
 f = open('data/day09-final.txt', 'r')
 
+
 def doit(l, f):
     # if all elements in l are 0 return 0
     if [0]*len(l) == l:
         return 0
 
-    diffs = []
-    for i in range(len(l) - 1):
-        diffs.append(l[i+1] - l[i])
-
-    last = doit(diffs, f)
-    return f(l, last)
+    diffs = [l[i+1] - l[i] for i in range(len(l) - 1)]
+    return f(l, doit(diffs, f))
 
 
 def part1(lines, f):
-    total = [doit(l, f) for l in lines]
-    return sum(total)
+    return sum([doit(l, f) for l in lines])
 
 
 lines = [l.strip() for l in f]

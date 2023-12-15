@@ -81,11 +81,7 @@ def part2(l, s):
 
 
 lines = [l.strip() for l in f]
-start = (0, 0)
-for i in range(len(lines)):
-    for j in range(len(lines[i])):
-        if lines[i][j] == 'S':
-            start = (i, j)
+start = [(i, j) for i in range(len(lines)) for j in range(len(lines[i])) if lines[i][j] == 'S'][0]
 
 print("part1: ", part1(lines, start)[0])
 print("part2: ", part2(lines, start))

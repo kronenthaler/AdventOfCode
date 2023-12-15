@@ -1,5 +1,5 @@
 import re
-import math 
+import math
 
 # f = open('data/day08-sample.txt', 'r')
 f = open('data/day08-final.txt', 'r')
@@ -26,9 +26,7 @@ def part2(inst, graph):
     current = set([k for k in graph.keys() if k[2] == 'A'])
     goals = set([k for k in graph.keys() if k[2] == 'Z'])
 
-    l = tuple([part1(inst, graph, c, goals) for c in current])
-
-    return math.lcm(*l)
+    return math.lcm(*[part1(inst, graph, c, goals) for c in current])
 
 
 lines = [l.strip() for l in f if l.strip() != '']

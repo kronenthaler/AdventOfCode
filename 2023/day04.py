@@ -13,11 +13,7 @@ def part1(lines):
 
 
 def winners(card, winning, ticket):
-    current = 0
-    for x in winning:
-        if x in ticket:
-            current += 1
-    return current
+    return sum([1 for x in winning if x in ticket])
 
 
 def part2(lines):
@@ -27,7 +23,7 @@ def part2(lines):
         w = winners(card, winning, ticket)
         for i in range(card+1, card+1+w):
             counts[i] += counts[card]
-        
+
     return sum(counts.values())
 
 
@@ -36,7 +32,7 @@ def parse(lines):
     for l in lines:
         card, winning, ticket = re.match(r'Card\s*(\d+): (.*)\|(.*)', l).groups()
         yield (
-            int(card), 
+            int(card),
             list(map(lambda x: x.strip(), filter(lambda x: len(x) > 0, winning.strip().split(' ')))),
             list(map(lambda x: x.strip(), filter(lambda x: len(x) > 0, ticket.strip().split(' '))))
         )

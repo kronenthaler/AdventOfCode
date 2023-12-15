@@ -15,12 +15,10 @@ def check_horizontal(map, max_error=0, reflection_line=-1):
 
         valid_pivot = True
         errors_allowed = max_error
-        error = None
         while f < len(map[0]) and b >= 0:
             for j in range(0, len(map)):
                 if map[j][f] != map[j][b]:
                     errors_allowed -= 1
-                    error = (j, f, b)
                     if errors_allowed < 0:
                         valid_pivot = False
                         break

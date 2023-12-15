@@ -5,16 +5,7 @@ f = open('data/day11-final.txt', 'r')
 
 
 def part1(galaxies):
-    total = 0
-    for a in galaxies:
-        for b in galaxies:
-            if a == b: continue
-            total += abs(a[0] - b[0]) + abs(a[1]-b[1])
-
-    return total // 2
-
-
-lines = [l.strip() for l in f]
+    return sum([abs(a[0] - b[0]) + abs(a[1]-b[1]) for a in galaxies for b in galaxies if a != b]) // 2
 
 
 def expand(lines, factor=2):
@@ -42,9 +33,12 @@ def expand(lines, factor=2):
         empty_columns.append(total)
 
     expanded_galaxies = []
-    for i,j in galaxies:
+    for i, j in galaxies:
         expanded_galaxies.append((i + (empty_lines[i]), j + (empty_columns[j])))
     return expanded_galaxies
+
+
+lines = [l.strip() for l in f]
 
 print("part1: ", part1(expand(lines, 2)))
 print("part2: ", part1(expand(lines, 1_000_000)))
