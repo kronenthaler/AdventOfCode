@@ -53,44 +53,41 @@ def part1(board):
     # 3 moves: left, right, straight (all depend on entry direction)
     n = len(board)
     m = len(board[0])
-    visited = set()  # (i,j)
-    costs = list([[math.inf for j in range(m)] for i in range(n)])
-    costs[0][0] = 0
-    full_path = list([[(-1, -1, -1) for j in range(m)] for i in range(n)])
+    visited = set()  # (i, j, d)
+    # costs = list([[math.inf for j in range(m)] for i in range(n)])
+    # costs[0][0] = 0
+    # full_path = list([[(-1, -1, -1) for j in range(m)] for i in range(n)])
 
-    q = queue()
-    q.put(((0, 0, 0), []))  # right
-    q.put(((0, 0, 1), []))  # down
-    while not q.empty():
-        (i, j, d), path = q.get()
+    q = list()
+    q.append(((0, 0, 0, 0), []))  # right
+    q.append(((0, 0, 1, 0), []))  # down
 
-        if (i, j) in visited:
+    best = math.inf
+    best_path = None
+    while len(q) != 0:
+        (i, j, d, cost), path = q.pop(0)
+
+        if len(path) > 3 * n * m:
             continue
-        visited.add((i, j))
 
-        # get last 3 elements to path i, j
-        subpath = valid_path(full_path, i, j)
-        [print(i, j, dsymbol[d]) for d in subpath]
+        if (i, j) == (n-1, m-1):
+            print('found solution: ', cost + board[-1][-1], path)
+            if best > cost + board[-1][-1]:
+                best = min(best, cost + board[-1][-1])
+                best_path = path
+            continue
 
-        len(path) >= 3 and path[-3] == path[-2] == path[-1]
-        start_range = 1 if len(set(subpath)) == 3 or (len(path) >= 3 and path[-3] == path[-2] == path[-1]) else 0
+        start_range = 1 if len(path) >= 3 and path[-3] and path[-2] == path[-1] == d else 0
         for si, sj, nd in directions[d][start_range:]:
             ni, nj = (i + si, j + sj)
 
-            # add the last 3 paths if sumx or sumy == 3 -> cannot move forward
-            # check of the path lenght should be here...
             if (0 <= ni < n and 0 <= nj < m and
-                    (ni, nj) not in visited
-                    and costs[i][j] + board[ni][nj] < costs[ni][nj]
-                ):
+                (ni, nj) not in visited and
+                cost + board[ni][nj] < best):
+                q.append(((ni, nj, nd, cost + board[ni][nj]), path + [d]))
 
-                costs[ni][nj] = costs[i][j] + board[ni][nj]
-                full_path[ni][nj] = (i, j, d)
-                q.put(((ni, nj, nd), path + [d]))
-
-    [print(c) for c in costs]
-    print_path(full_path, board, (12, 12))
-    return costs[-1][-1]
+    print(best_path)
+    return best
 
 def part2(l):
     pass
