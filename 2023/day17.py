@@ -7,19 +7,16 @@ f = open('data/day17-sample.txt', 'r')
 # f = open('data/day17-final.txt', 'r')
 
 
-steps = [(1,0), (-1,0), (0,1), (0,-1)]
-
 dsymbol = ['>', 'v', '<', '^']
-
 RIGHT=(0, 1, 0)
 DOWN=(1, 0, 1)
 LEFT=(0, -1, 2)
 UP=(-1, 0, 3)
-
 R=0
 D=1
 L=2
 U=3
+
 
 directions = [  # (i,j, d-index)
     # straight, left,  right
@@ -46,65 +43,72 @@ def heuristic(src, target):
 
 
 def part1(board):
+    # read up: https://cutonbuminband.github.io/AOC/qmd/2023.html#day-17-clumsy-crucible
+    # dijsktra, however what matters are only the states where you turn, direction only need vertical/horizontal.
+
     target = len(board)-1, len(board[0])-1
 
     # A* approach
     # state: (cost, (i, j, d-index), path)
     # opened = PriorityQueue() # or heap
     opened = []
-    heapq.heappush(opened, (heuristic((0, 0), target), ((0, 0), R, 0, "")))
-    heapq.heappush(opened, (heuristic((0, 0), target), ((0, 0), D, 0, "")))
+    heapq.heappush(opened, (heuristic((0, 0), target), ((0, 0, R), 0, "")))
+    heapq.heappush(opened, (heuristic((0, 0), target), ((0, 0, D), 0, "")))
     closed = {}  # state -> cost
     opened_hash = {
-        (0, 0): heuristic((0, 0), target),
+        (0, 0, R): heuristic((0, 0), target),
+        (0, 0, D): heuristic((0, 0), target),
     }
 
     while len(opened) > 0:
-        h_cost, (pos, d, cost, path) = heapq.heappop(opened)
-        i, j = pos
+        h_cost, ((i, j, d), cost, path) = heapq.heappop(opened)
 
-        print(pos, target, h_cost, cost, len(opened), len(closed))
+        print((i, j, d), target, h_cost, cost, path, len(opened), len(closed))
 
-        closed[pos] = h_cost
-        if pos in opened_hash:
-            del opened_hash[pos]
+        closed[(i, j, d)] = h_cost
+        if (i, j, d) in opened_hash:
+            del opened_hash[(i, j, d)]
 
-        if pos == target:
-            [print(dsymbol[int(d)], end='') for d in path]  # path as a string is easier to append
-            print()
-            return cost  # 1007 too high
+        if (i, j) == target:
+            # [print(dsymbol[int(d)], end='') for d in path]  # path as a string is easier to append
+            print(path)
+            print(">>v>>>^>>>vv>>vv>vvv>vvv<vv>")
+            return cost  # 1007 too high, 975 too high, 873 too low
 
         # generate candidates
         candidates = []  # h_cost, ((i,j), d-index, cost, path)
-        start_range = 1 if len(path) >= 3 and path[-1] == path[-2] == path[-3] == str(d) else 0
+        start_range = 1 if len(path) >= 3 and path[-1] == path[-2] == path[-3] == dsymbol[d] else 0
         for sx, sy, nd in directions[d][start_range:]:
             ni, nj = i + sx, j + sy
             if 0 <= ni < len(board) and 0 <= nj < len(board[0]):
                 new_cost = cost + board[ni][nj]
                 new_h_cost = heuristic((ni, nj), target) + new_cost
-                new_state = (ni, nj), nd, new_cost, path + str(nd)
+                new_state = (ni, nj, nd), new_cost, path + dsymbol[nd]
                 candidates.append((new_h_cost, new_state))
 
         # end generation
         for new_h_cost, new_state in candidates:
-            pos, _, _, _ = new_state
-            if pos in closed:
-                if closed[pos] < new_h_cost:
+            new_pos, _, _ = new_state
+            if new_pos in closed:
+                if closed[new_pos] <= new_h_cost:
                     continue
-                del closed[pos]
+                del closed[new_pos]
 
-            if pos in opened_hash:
-                if opened_hash[pos] < new_h_cost:
+            # this part is cutting is pruning too much and missing the correct path
+            # there is something with the definition of the state (pos + dir) could be too broad.
+            # what else can be added?
+            if new_pos in opened_hash:
+                if opened_hash[new_pos] <= new_h_cost:
                     continue
-                del opened_hash[pos]
-                for i, (_, (open_pos, _, _, _)) in enumerate(opened):
-                    if open_pos == pos:
+                del opened_hash[new_pos]
+                for i, (_, (open_pos, _, _)) in enumerate(opened):
+                    if open_pos == new_pos:
                         del opened[i]
                         heapq.heapify(opened)
                         break
 
             heapq.heappush(opened, (new_h_cost, new_state))
-            opened_hash[pos] = new_h_cost
+            opened_hash[new_pos] = new_h_cost
 
 
     print(opened)
