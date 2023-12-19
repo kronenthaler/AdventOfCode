@@ -1,7 +1,7 @@
 import copy
 import re
 import math
-from queue import PriorityQueue as queue
+import heapq
 
 f = open('data/day17-sample.txt', 'r')
 # f = open('data/day17-final.txt', 'r')
@@ -15,6 +15,11 @@ RIGHT=(0, 1, 0)
 DOWN=(1, 0, 1)
 LEFT=(0, -1, 2)
 UP=(-1, 0, 3)
+
+R=0
+D=1
+L=2
+U=3
 
 directions = [  # (i,j, d-index)
     # straight, left,  right
@@ -36,58 +41,74 @@ def print_path(path, b, target):
     [print("".join(str(x) for x in l)) for l in board]
 
 
-def valid_path(path, i, j):
-    subpath = []
-    steps = 0
-    while steps < 3 and (i, j) != (0, 0):
-        i, j, d = path[i][j]
-        steps += 1
-        subpath.append(d)
-
-    return subpath
+def heuristic(src, target):
+    return abs(src[0] - target[0]) + abs(src[1] - target[1])
 
 
 def part1(board):
-    # funky-dijsktra
-    # shortest path with additional constraints (not longer than 3 steps in the same direction)
-    # 3 moves: left, right, straight (all depend on entry direction)
-    n = len(board)
-    m = len(board[0])
-    visited = set()  # (i, j, d)
-    # costs = list([[math.inf for j in range(m)] for i in range(n)])
-    # costs[0][0] = 0
-    # full_path = list([[(-1, -1, -1) for j in range(m)] for i in range(n)])
+    target = len(board)-1, len(board[0])-1
 
-    q = list()
-    q.append(((0, 0, 0, 0), []))  # right
-    q.append(((0, 0, 1, 0), []))  # down
+    # A* approach
+    # state: (cost, (i, j, d-index), path)
+    # opened = PriorityQueue() # or heap
+    opened = []
+    heapq.heappush(opened, (heuristic((0, 0), target), ((0, 0), R, 0, "")))
+    heapq.heappush(opened, (heuristic((0, 0), target), ((0, 0), D, 0, "")))
+    closed = {}  # state -> cost
+    opened_hash = {
+        (0, 0): heuristic((0, 0), target),
+    }
 
-    best = math.inf
-    best_path = None
-    while len(q) != 0:
-        (i, j, d, cost), path = q.pop(0)
+    while len(opened) > 0:
+        h_cost, (pos, d, cost, path) = heapq.heappop(opened)
+        i, j = pos
 
-        if len(path) > 3 * n * m:
-            continue
+        print(pos, target, h_cost, cost, len(opened), len(closed))
 
-        if (i, j) == (n-1, m-1):
-            print('found solution: ', cost + board[-1][-1], path)
-            if best > cost + board[-1][-1]:
-                best = min(best, cost + board[-1][-1])
-                best_path = path
-            continue
+        closed[pos] = h_cost
+        if pos in opened_hash:
+            del opened_hash[pos]
 
-        start_range = 1 if len(path) >= 3 and path[-3] and path[-2] == path[-1] == d else 0
-        for si, sj, nd in directions[d][start_range:]:
-            ni, nj = (i + si, j + sj)
+        if pos == target:
+            [print(dsymbol[int(d)], end='') for d in path]  # path as a string is easier to append
+            print()
+            return cost  # 1007 too high
 
-            if (0 <= ni < n and 0 <= nj < m and
-                (ni, nj) not in visited and
-                cost + board[ni][nj] < best):
-                q.append(((ni, nj, nd, cost + board[ni][nj]), path + [d]))
+        # generate candidates
+        candidates = []  # h_cost, ((i,j), d-index, cost, path)
+        start_range = 1 if len(path) >= 3 and path[-1] == path[-2] == path[-3] == str(d) else 0
+        for sx, sy, nd in directions[d][start_range:]:
+            ni, nj = i + sx, j + sy
+            if 0 <= ni < len(board) and 0 <= nj < len(board[0]):
+                new_cost = cost + board[ni][nj]
+                new_h_cost = heuristic((ni, nj), target) + new_cost
+                new_state = (ni, nj), nd, new_cost, path + str(nd)
+                candidates.append((new_h_cost, new_state))
 
-    print(best_path)
-    return best
+        # end generation
+        for new_h_cost, new_state in candidates:
+            pos, _, _, _ = new_state
+            if pos in closed:
+                if closed[pos] < new_h_cost:
+                    continue
+                del closed[pos]
+
+            if pos in opened_hash:
+                if opened_hash[pos] < new_h_cost:
+                    continue
+                del opened_hash[pos]
+                for i, (_, (open_pos, _, _, _)) in enumerate(opened):
+                    if open_pos == pos:
+                        del opened[i]
+                        heapq.heapify(opened)
+                        break
+
+            heapq.heappush(opened, (new_h_cost, new_state))
+            opened_hash[pos] = new_h_cost
+
+
+    print(opened)
+
 
 def part2(l):
     pass
