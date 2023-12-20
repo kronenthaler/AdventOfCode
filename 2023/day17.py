@@ -1,125 +1,67 @@
 import copy
 import re
 import math
-import heapq
+from queue import PriorityQueue
 
-f = open('data/day17-sample.txt', 'r')
-# f = open('data/day17-final.txt', 'r')
-
-
-dsymbol = ['>', 'v', '<', '^']
-RIGHT=(0, 1, 0)
-DOWN=(1, 0, 1)
-LEFT=(0, -1, 2)
-UP=(-1, 0, 3)
-R=0
-D=1
-L=2
-U=3
+# f = open('data/day17-sample.txt', 'r')
+f = open('data/day17-final.txt', 'r')
 
 
-directions = [  # (i,j, d-index)
-    # straight, left,  right
-    [RIGHT, UP, DOWN],  # 0: right >
-    [DOWN, LEFT, RIGHT],  # 1: down v
-    [LEFT, UP, DOWN],  # 2: left <
-    [UP, LEFT, RIGHT]   # 3: up ^
+directions = [
+    [(-1, 0), (1, 0)],  # up, down
+    [(0, -1), (0, 1)]   # left, right
 ]
+dir_to_symbol = {
+    (-1, 0): '^',
+    (1, 0): 'v',
+    (0, -1): '<',
+    (0, 1): '>'
+}
 
-
-def print_path(path, b, target):
-    board = copy.deepcopy(b)
-    current = target
-    while current != (0, 0):
-        i, j, d = path[current[0]][current[1]]
-        board[i][j] = dsymbol[d]
-        current = i, j
-
-    [print("".join(str(x) for x in l)) for l in board]
-
-
-def heuristic(src, target):
-    return abs(src[0] - target[0]) + abs(src[1] - target[1])
-
-
-def part1(board):
+def part1(board, min_d=1, max_d=3):
     # read up: https://cutonbuminband.github.io/AOC/qmd/2023.html#day-17-clumsy-crucible
     # dijsktra, however what matters are only the states where you turn, direction only need vertical/horizontal.
-
+    N = len(board)
+    M = len(board[0])
     target = len(board)-1, len(board[0])-1
 
-    # A* approach
-    # state: (cost, (i, j, d-index), path)
-    # opened = PriorityQueue() # or heap
-    opened = []
-    heapq.heappush(opened, (heuristic((0, 0), target), ((0, 0, R), 0, "")))
-    heapq.heappush(opened, (heuristic((0, 0), target), ((0, 0, D), 0, "")))
-    closed = {}  # state -> cost
-    opened_hash = {
-        (0, 0, R): heuristic((0, 0), target),
-        (0, 0, D): heuristic((0, 0), target),
-    }
+    opened = PriorityQueue()
+    opened.put((0, (0, 0, 0), ""))  # cost, (i, j, direction), path
+    opened.put((0, (0, 0, 1), ""))
 
-    while len(opened) > 0:
-        h_cost, ((i, j, d), cost, path) = heapq.heappop(opened)
+    visited = set()
 
-        print((i, j, d), target, h_cost, cost, path, len(opened), len(closed))
-
-        closed[(i, j, d)] = h_cost
-        if (i, j, d) in opened_hash:
-            del opened_hash[(i, j, d)]
+    while not opened.empty():
+        cost, (i, j, d), path = opened.get()
 
         if (i, j) == target:
-            # [print(dsymbol[int(d)], end='') for d in path]  # path as a string is easier to append
-            print(path)
-            print(">>v>>>^>>>vv>>vv>vvv>vvv<vv>")
-            return cost  # 1007 too high, 975 too high, 873 too low
+            # print(path)
+            return cost
+
+        if (i, j, d) in visited:
+            continue
+        visited.add((i, j, d))
 
         # generate candidates
-        candidates = []  # h_cost, ((i,j), d-index, cost, path)
-        start_range = 1 if len(path) >= 3 and path[-1] == path[-2] == path[-3] == dsymbol[d] else 0
-        for sx, sy, nd in directions[d][start_range:]:
-            ni, nj = i + sx, j + sy
-            if 0 <= ni < len(board) and 0 <= nj < len(board[0]):
-                new_cost = cost + board[ni][nj]
-                new_h_cost = heuristic((ni, nj), target) + new_cost
-                new_state = (ni, nj, nd), new_cost, path + dsymbol[nd]
-                candidates.append((new_h_cost, new_state))
-
-        # end generation
-        for new_h_cost, new_state in candidates:
-            new_pos, _, _ = new_state
-            if new_pos in closed:
-                if closed[new_pos] <= new_h_cost:
+        for (di, dj) in directions[d]:
+            step_cost = cost
+            for s in range(1, max_d + 1):  # attempt to turn in s0, s1, s2 ... sN
+                ni, nj = i + di * s, j + dj * s
+                if not (0 <= ni < N and 0 <= nj < M):
                     continue
-                del closed[new_pos]
 
-            # this part is cutting is pruning too much and missing the correct path
-            # there is something with the definition of the state (pos + dir) could be too broad.
-            # what else can be added?
-            if new_pos in opened_hash:
-                if opened_hash[new_pos] <= new_h_cost:
+                step_cost += board[ni][nj]
+                if (ni, nj, 1 - d) in visited:
                     continue
-                del opened_hash[new_pos]
-                for i, (_, (open_pos, _, _)) in enumerate(opened):
-                    if open_pos == new_pos:
-                        del opened[i]
-                        heapq.heapify(opened)
-                        break
 
-            heapq.heappush(opened, (new_h_cost, new_state))
-            opened_hash[new_pos] = new_h_cost
+                if s >= min_d:
+                    opened.put((step_cost, (ni, nj, 1 - d), path + dir_to_symbol[(di, dj)] * s))
 
-
-    print(opened)
-
-
-def part2(l):
-    pass
+    return -1
 
 
 lines = [list(map(int, list(l.strip()))) for l in f]
 print(lines)
 
 print("part1: ", part1(lines))
-print("part2: ", part2(lines))
+print("part2: ", part1(lines, 4, 10))
