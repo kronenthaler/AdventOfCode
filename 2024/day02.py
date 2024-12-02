@@ -20,29 +20,27 @@ def is_safe(diffs):
 
 def check_level(level):
     pairs = list(zip(level, level[1:]))
-    diffs = [int(a) - int(b) for (a, b) in pairs]
-    if is_safe(diffs):
+    if is_safe([a - b for (a, b) in pairs]):
         return True
     return False
 
 
 def part2(lines):
     safe = 0
+
     for level in lines:
         if check_level(level):
             safe += 1
         else:
             for i in range(0, len(level)):
-                copy = level.copy()
-                del copy[i]
-                if check_level(copy):
+                if check_level(level[0:i] + level[i+1:]):
                     safe += 1
                     break
     return safe
 
 
 
-lines = [l.strip().split(' ') for l in f]
+lines = [list(map(int, l.strip().split(' '))) for l in f]
 
 print("part1: ", part1(lines))
 print("part2: ", part2(lines))
