@@ -28,7 +28,7 @@ def part1(m, start):
         pos = (ni, nj)
         visited.add(pos)
 
-    return len(visited)
+    return len(visited), list(visited)
 
 
 def check(m, start):
@@ -53,15 +53,14 @@ def check(m, start):
     return False
 
 
-def part2(m, start):
+def part2(m, start, candidates):
     count = 0
-    for i in range(N):
-        for j in range(M):
-            if (i, j) != start and m[i][j] == '.':
-                nm = deepcopy(m)
-                nm[i][j] = '#'
-                if check(nm, start):
-                    count += 1
+    for (i, j) in candidates:
+        if (i, j) != start and m[i][j] == '.':
+            m[i][j] = '#'
+            if check(m, start):
+                count += 1
+            m[i][j] = '.'
 
     return count
 
@@ -78,6 +77,6 @@ for i in range(N):
             lines[i][j] = '.'
             break
 
-
-print("part1: ", part1(lines, start))
-print("part2: ", part2(lines, start))
+result, path = part1(lines, start)
+print("part1: ", result)
+print("part2: ", part2(lines, start, path))
