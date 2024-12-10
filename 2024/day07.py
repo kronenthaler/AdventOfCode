@@ -4,43 +4,25 @@ import re
 f = open('data/day07-final.txt', 'r')
 
 
-def bt(target, accum, l, part2=False):
+def bt(target, accum, l, funcs):
     if len(l) == 0:
         return accum == target
 
-    if bt(target, accum + l[0], l[1:], part2):
-        return True
-    if bt(target, accum * l[0], l[1:], part2):
-        return True
-    if part2 and bt(target, int(str(accum)+str(l[0])), l[1:], part2):
-        return True
+    for f in funcs:
+        if bt(target, f(accum, l[0]), l[1:], funcs):
+            return True
 
     return False
 
 
-def part1(l):
-    total = 0
-    for target, values in l:
-        target = int(target)
-        operands = [int(x) for x in values.strip().split(' ')]
-        if bt(target, operands[0], operands[1:]):
-            total += target
-
-    return total
+def solve(l, ops):
+    return sum([target for target, operands in l if bt(target, operands[0], operands[1:], ops)])
 
 
-def part2(l):
-    total = 0
-    for target, values in l:
-        target = int(target)
-        operands = [int(x) for x in values.strip().split(' ')]
-        if bt(target, operands[0], operands[1:], True):
-            total += target
+lines = [(int(t), [int(x) for x in v.strip().split(' ')]) for t, v in [tuple(l.strip().split(':')) for l in f]]
 
-    return total
+part1_ops = [lambda x, y: x + y, lambda x, y: x * y]
+part2_ops = [lambda x, y: x+y, lambda x,y: x*y, lambda x,y: int(str(x)+str(y))]
 
-
-lines = [tuple(l.strip().split(':')) for l in f]
-
-print("part1: ", part1(lines))
-print("part2: ", part2(lines))
+print("part1: ", solve(lines, part1_ops))
+print("part2: ", solve(lines, part2_ops))
