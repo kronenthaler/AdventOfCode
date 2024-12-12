@@ -1,4 +1,7 @@
+import functools
+import math
 import re
+import numpy as np
 
 f = open('data/day__DAY__-sample.txt', 'r')
 # f = open('data/day__DAY__-final.txt', 'r')
