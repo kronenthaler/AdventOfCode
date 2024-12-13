@@ -1,8 +1,4 @@
-import functools
-import math
-import re
-import numpy as np
-from queue import PriorityQueue
+from utils import *
 
 
 # f = open('data/day13-sample.txt', 'r')
@@ -16,16 +12,10 @@ machines = [(
     tuple(map(int, re.findall(r'Prize: X=([0-9]+), Y=([0-9]+)', p)[0]))) for a,b,p in group]
 
 
-def part1(machines, limit=100):
-    return sum([equation(t, a, b) for (a, b, t) in machines])
-
-
-def equation(t, a, b, offset=0):
+def equation(t, a, b, limit=math.inf, offset=0):
     ax, ay = a
     bx, by = b
-    x, y = t
-    x += offset
-    y += offset
+    x, y = add(t, (offset, offset))
 
     den = ax*by - ay*bx
     if den == 0:
@@ -34,15 +24,20 @@ def equation(t, a, b, offset=0):
     gamma = int((ax*y - ay * x) / den)
     alpha = int((x - bx * gamma) / ax)
 
-    if(x == ax * alpha + bx * gamma) and (y == ay * alpha + by * gamma):
+    if alpha <= limit and gamma <= limit and \
+            (x == ax * alpha + bx * gamma) and \
+            (y == ay * alpha + by * gamma):
         return int(alpha * 3 + gamma)
 
     return 0
 
 
+def part1(machines):
+    return sum([equation(t, a, b, limit=100) for (a, b, t) in machines])
+
+
 def part2(machines):
-    return sum([equation(t, a, b, 10000000000000)
-                for (a, b, t) in machines])
+    return sum([equation(t, a, b, offset=10000000000000) for (a, b, t) in machines])
 
 
 print("part1: ", part1(machines))
