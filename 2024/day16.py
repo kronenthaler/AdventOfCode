@@ -1,8 +1,4 @@
-import math
-
 from utils import *
-from copy import deepcopy
-from queue import PriorityQueue as pqueue
 
 # f = open('data/day16-sample.txt', 'r')
 f = open('data/day16-final.txt', 'r')
@@ -19,7 +15,7 @@ def valid(t, min=(0, 0), max=(N, M)):
 
 
 def dijkstra(s, m):
-    opened = pqueue()
+    opened = PriorityQueue()
     opened.put((0, (s, EAST), None))
     visited = {}
     parents = {(s, EAST): []}
