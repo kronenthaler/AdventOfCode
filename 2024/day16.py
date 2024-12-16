@@ -14,42 +14,50 @@ def valid(t, min=(0, 0), max=(N, M)):
     return all(map(lambda m, t, M: m <= t < M, min, t, max))
 
 
+def path(vector, parents):
+    uniq = set()
+    start = [vector]
+    checked = set()
+    while len(start) != 0:
+        next = start.pop()
+        uniq.add(next[0])
+        if next not in checked:
+            start.extend(parents[next])
+        checked.add(next)
+    return uniq
+
+
 def dijkstra(s, m):
     opened = PriorityQueue()
-    opened.put((0, (s, EAST), None))
+    opened.put((0, (s, EAST)))
     visited = {}
-    parents = {(s, EAST): []}
+    parents = {(s, EAST): set()}
 
     while not opened.empty():
-        cost, vector, prev = opened.get()
+        cost, vector = opened.get()
         current, dir = vector
 
         if current == E:
-            uniq = set()
-            q = [prev]
-            while len(q):
-                node, d = q.pop()
-                uniq.add(node)
-                q.extend(parents[(node, d)])
-            return cost, len(uniq) + 1
+            return cost, len(path(vector, parents))
 
-        if vector in visited:
-            if cost <= visited[vector]:
-                parents[vector].append(prev)
-            continue
+        def adjs():
+            for d in [-1, 1]:
+                ndir = (dir + d) % len(Steps2D)
+                yield 1000, (current, ndir)
+            ni, nj = add(current, Steps2D[dir])
+            if m[ni][nj] != '#':
+                yield 1, ((ni, nj), dir)
 
-        visited[vector] = cost
+        for ncost, nvector in adjs():
+            cur_cost = visited.get(nvector, math.inf)
+            if cost + ncost <= cur_cost:
+                opened.put((cost + ncost, nvector))
+                visited[nvector] = cost + ncost
 
-        if prev is not None:
-            parents[vector] = [prev]
-
-        ni, nj = add(current, Steps2D[dir])
-        if m[ni][nj] != '#':
-            opened.put((cost + 1, ((ni, nj), dir), vector))
-
-        for d in [-1, 1]:
-            ndir = (dir + d) % len(Steps2D)
-            opened.put((cost + 1000, (current, ndir), vector))
+                if cost + ncost < cur_cost:
+                    parents[nvector] = {vector}
+                else:
+                    parents[nvector].add(vector)
 
     return math.inf, ""
 
