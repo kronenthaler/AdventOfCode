@@ -17,18 +17,17 @@ def equation(t, a, b, limit=math.inf, offset=0):
     bx, by = b
     x, y = add(t, (offset, offset))
 
-    den = ax*by - ay*bx
+    den = ax * by - ay * bx
     if den == 0:
         return 0
 
-    gamma = int((ax*y - ay * x) / den)
+    gamma = int((ax * y - ay * x) / den)
     alpha = int((x - bx * gamma) / ax)
 
     if alpha <= limit and gamma <= limit and \
             (x == ax * alpha + bx * gamma) and \
             (y == ay * alpha + by * gamma):
-        return int(alpha * 3 + gamma)
-
+        return alpha * 3 + gamma
     return 0
 
 
