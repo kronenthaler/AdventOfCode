@@ -1,6 +1,9 @@
 import re
 
 from utils import *
+from scipy.optimize import linprog, milp, LinearConstraint, Bounds
+from numpy import transpose
+
 
 # f = open('data/day10-sample.txt', 'r')
 f = open('data/day10-final.txt', 'r')
@@ -33,35 +36,32 @@ def find_min(state, buttons):
                 queue.append((new_state, count+1))
     return -1
 
-# probably something to do with divisibility, order doesn't matter in this case.
-def find_voltage(state, buttons):
-    start = tuple([0] * len(state))
-    queue = [(start, 0)]
-    visited = set([start])  # avoid check same state twice
-
-    while queue:
-        current, count = queue.pop(0)
-        for b in buttons:
-            new_state = list(current)
-            for i in b:
-                new_state[i] = current[i] + 1
-            new_state = tuple(new_state)
-            ok = sum([1 if new_state[i] > state[i] else 0 for i in range(len(new_state))])
-            if new_state not in visited and ok <= 0:
-                if new_state == state:
-                    print("solution found: ", new_state, state, count + 1)
-                    return count + 1
-
-                visited.add(new_state)
-                queue.append((new_state, count + 1))
-    return -1
 
 def part1(l):
     return sum(find_min(s, b) for s, b, _ in l)
 
 
+# it's not a simple equation system because there might be more equations (buttons) than variables needed (lights)
+# it's a linear system minimization
 def part2(l):
-    return sum(find_voltage(tuple(j), b) for _, b, j in l)
+    total = 0
+    for s, btns, j in l:
+        # convert to a vector form
+        btns_vector = []
+        for b in btns:
+            new_b = [0] * len(s)
+            for i in b:
+                new_b[i] += 1
+            btns_vector.append(new_b)
+
+        coef = [1] * len(btns_vector) # minimize all coefficients
+        constraints = LinearConstraint(transpose(btns_vector), lb=j, ub=j) # the solution must be exactly equal
+        bounds = Bounds(lb=0, ub=np.inf) # restrict to non-negative values
+        result = milp(coef, integrality=[1] * len(btns_vector), constraints=constraints, bounds=bounds)
+        count = math.ceil(sum(result.x))
+        total += count
+
+    return total  #16361
 
 
 print("part1: ", part1(parsed))
